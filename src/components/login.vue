@@ -29,11 +29,7 @@ export default {
       console.log(res)
       const { data: { data: { token }, meta: { msg, status } } } = res
       if (status === 200) {
-        // 提示: token值目前不需要关心 ,将来要用,把token永久存储
-        // localStorage(Html5新特性)
-        // (key名:要存储的数据)
         localStorage.setItem('token', token)
-        // 渲染home.vue <- 改标识/  <- js代码编程导航$router
         this.$router.push({
           name: 'home'
         })
