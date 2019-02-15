@@ -11,7 +11,7 @@
       <el-button @click.prevent="handlelogin()" class="login-btn" type="primary">登录</el-button>
     </el-form>
   </div>
-</template> 
+</template>
 
 <script>
 export default {
@@ -24,21 +24,25 @@ export default {
     }
   },
   methods: {
-      handlelogin() {
-        this.$http.post('login',this.formdata).then(res => {
-          const {
-            data: {
-              data,
-              meta:{msg,status}
-            }
-          } = res
-          if (status ===200) {
-            console.log('login---success--');
-          } else {
-            console.log('error---');
+    async handlelogin () {
+    const res= await  this.$http.post('login', this.formdata)
+        const {
+          data: {
+            data,
+            meta: {msg, status}
           }
-        })
-      }
+        } = res
+        // const status = res.data.meta.status
+        // const msg = res.data.meta.msg
+        if (status === 200) {
+          this.$router.push({
+            name: 'home'
+          })
+        } else {
+          this.$message.error(msg)
+        }
+      
+    }
   }
 }
 </script>
