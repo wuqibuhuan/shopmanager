@@ -28,13 +28,14 @@ export default {
     const res= await  this.$http.post('login', this.formdata)
         const {
           data: {
-            data,
+            data: { token },
             meta: {msg, status}
           }
         } = res
         // const status = res.data.meta.status
         // const msg = res.data.meta.msg
         if (status === 200) {
+          localStorage.setItem("token", token);
           this.$router.push({
             name: 'home'
           })
