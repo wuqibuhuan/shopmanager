@@ -16,7 +16,7 @@ Vue.use(ElementUI)
 // 全局过滤器 - 处理日期
 Vue.filter('fmtdate', (v) => {
   return moment(v).format('YYYY-MM-DD')
-});
+})
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

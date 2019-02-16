@@ -126,6 +126,7 @@ export default {
 .aside {
     /* background-color: gold; */
     height: 100%;
+    margin-top: 20px;
 }
 .main {
     background-color: #E6EFFB;

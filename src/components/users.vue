@@ -72,67 +72,112 @@
       </el-table-column>
     </el-table>
     <!-- 分页 -->
-
+  <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="pagenum"
+      :page-sizes="[2, 4, 6, 8]"
+      :page-size="2"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+    ></el-pagination>
 </el-card>
-
 </template>
 
 <script>
 export default {
-  data() {
+  data () {
     return {
-      query: "",
+      query: '',
       pagenum: 1,
-      pagesize: 10,
+      pagesize: 2,
+      total: -1,
       list: [],
       // 表单数据
       formdata: {
-        username: "",
-        password: "",
-        email: "",
-        mobile: ""
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
       }
-    };
+    }
   },
-  created() {
-    this.getTableData();
+  created () {
+    this.getTableData()
   },
   methods: {
-    async getTableData() {
+    async getTableData () {
       //  设置请求头
-      const AUTH_TOKEN = localStorage.getItem("token");
-      this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
+      const AUTH_TOKEN = localStorage.getItem('token')
+      this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN
 
       const res = await this.$http.get(
         `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${
           this.pagesize
         }=${this.pagesize}`
-      );
+      )
       // console.log(res);
-      const { data, meta: { status, msg } } = res.data;
+      const { data, meta: { status, msg } } = res.data
       if (status === 200) {
         // this.total = data.total;
-        this.list = data.users;
-        console.log(this.list);
+        this.list = data.users
+        console.log(this.list)
       }
     },
     // 添加用户
-    showDiaAddUser() {
-      this.dialogFormVisibleAdd = true;
+    showDiaAddUser () {
+      this.dialogFormVisibleAdd = true
     },
     // 清空时获取所有用户
-    getAllUsers() {
+    getAllUsers () {
       // 此时 query查询参数已经是''
 
-      this.getTableData();
+      this.getTableData()
     },
     // 搜索用户
-    searchUser() {
-      this.pagenum = 1;
-      this.getTableData();
+    searchUser () {
+      this.pagenum = 1
+      this.getTableData()
+    },
+    handleSizeChange (val) {
+      console.log(`每页 ${val} 条`)
+      this.pagenum = 1
+      this.pagesize = val
+      this.getTableData()
+    },
+    // 当前1页 -> 点击2页 -> 获取第二页数据
+    handleCurrentChange (val) {
+      console.log(`当前页: ${val}`)
+      // 根据新页码发送请求
+      this.pagenum = val
+      this.getTableData()
+    },
+    async getTableData () {
+      // query	查询参数	可以为空
+      // pagenum	当前页码	不能为空
+      // pagesize	每页显示条数	不能为空
+      // 设置发送请求时的请求头-> axios库 ->找axios中有没有可以设置headers头部的API->看axios文档
+      const AUTH_TOKEN = localStorage.getItem('token')
+      // console.log(AUTH_TOKEN);
+      this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN
+      const res = await this.$http.get(
+        `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${
+          this.pagesize
+        }`
+      )
+      console.log(res)
+      const {
+        data,
+        meta: { status, msg }
+      } = res.data
+      if (status === 200) {
+        this.total = data.total
+        this.list = data.users
+        // console.log(this.list);
+      }
     }
   }
-};
+}
 </script>
 
 <style>
