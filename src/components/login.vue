@@ -25,24 +25,23 @@ export default {
   },
   methods: {
     async handlelogin () {
-    const res= await  this.$http.post('login', this.formdata)
-        const {
-          data: {
-            data: { token },
-            meta: {msg, status}
-          }
-        } = res
-        // const status = res.data.meta.status
-        // const msg = res.data.meta.msg
-        if (status === 200) {
-          localStorage.setItem("token", token);
-          this.$router.push({
-            name: 'home'
-          })
-        } else {
-          this.$message.error(msg)
+      const res = await this.$http.post('login', this.formdata)
+      const {
+        data: {
+          data,
+          meta: {msg, status}
         }
-      
+      } = res
+      // const status = res.data.meta.status
+      // const msg = res.data.meta.msg
+      if (status === 200) {
+        localStorage.setItem('token', data.token)
+        this.$router.push({
+          name: 'home'
+        })
+      } else {
+        this.$message.error(msg)
+      }
     }
   }
 }
