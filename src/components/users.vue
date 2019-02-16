@@ -65,8 +65,8 @@
         label="操作"
          width="200">
          <template slot-scope="scope">
-           <el-button type="primary" icon="el-icon-edit" circle size="mini" plain></el-button>
-          <el-button type="danger" icon="el-icon-delete" circle size="mini" plain></el-button>
+           <el-button type="primary"   @click="showDiaEditUser(scope.row)" icon="el-icon-edit" circle size="mini" plain></el-button>
+          <el-button type="danger"    @click="showMsgBox(scope.row)"  icon="el-icon-delete" circle size="mini" plain></el-button>
           <el-button type="success" icon="el-icon-check" circle size="mini" plain></el-button>
         </template>
       </el-table-column>
@@ -81,6 +81,48 @@
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
     ></el-pagination>
+
+    <!-- 对话框 添加用户对话框 -->
+    <el-dialog title="收货地址" :visible.sync="dialogFormVisibleAdd">
+      <el-form label-position="left" label-width="80px" :model="formdata">
+        <el-form-item label="用户名">
+          <el-input v-model="formdata.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="formdata.password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="formdata.email"></el-input>
+        </el-form-item>
+        <el-form-item label="电话">
+          <el-input v-model="formdata.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleAdd= false">取 消</el-button>
+        <el-button type="primary" @click="addUser()">确 定</el-button>
+      </div>
+    </el-dialog>
+
+        <!-- 对话框 - 编辑 -->
+    <el-dialog title="编辑用户" :visible.sync="dialogFormVisibleEdit">
+      <el-form label-position="left" label-width="80px" :model="formdata">
+        <el-form-item label="用户名">
+          <el-input disabled v-model="formdata.username"></el-input>
+        </el-form-item>
+
+        <el-form-item label="邮箱">
+          <el-input v-model="formdata.email"></el-input>
+        </el-form-item>
+        <el-form-item label="电话">
+          <el-input v-model="formdata.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleEdit = false">取 消</el-button>
+        <el-button type="primary" @click="editUser()">确 定</el-button>
+      </div>
+    </el-dialog>
 </el-card>
 </template>
 
@@ -93,6 +135,8 @@ export default {
       pagesize: 2,
       total: -1,
       list: [],
+      dialogFormVisibleAdd: false,
+      dialogFormVisibleEdit: false,
       // 表单数据
       formdata: {
         username: '',
@@ -106,6 +150,97 @@ export default {
     this.getTableData()
   },
   methods: {
+  //  编辑 发送请求
+    async editUser() {
+     
+      const res = await this.$http.put(
+        `users/${this.formdata.id}`,
+        this.formdata
+      );
+      // console.log(res);
+      const {
+        meta: { msg, status }
+      } = res.data;
+      if (status === 200) {
+        // 关闭对话框
+        this.dialogFormVisibleEdit = false;
+        // 更新表格
+        this.getTableData();
+      }
+    },
+    // 编辑- 显示对话框
+    async showDiaEditUser(user) {
+      this.dialogFormVisibleEdit = true;
+      const res = await this.$http.get(`users/${user.id}`);
+      // console.log(res);
+      this.formdata = res.data.data;
+      // this.formdata = user;
+    },
+    // 删除用户
+    showMsgBox (user) {
+      this.$confirm('是否把我删除?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(async () => {
+          const res = await this.$http.delete(`users/${user.id}`)
+          console.log(res)
+          const {
+            meta: { msg, status }
+          } = res.data
+          if (status === 200) {
+            // 提示框
+            this.$message.success(msg)
+            // 更新表格
+            this.pagenum = 1
+            this.getTableData()
+          }
+        })
+        .catch(() => {
+          this.$message.info('已取消删除')
+        })
+    },
+  //  这是编辑 发送请求
+    async addUser () {
+      // 获取表单数据 发送请求
+      const res = await this.$http.post(`users`, this.formdata)
+      // console.log(res);
+
+      // 关闭对话框
+      this.dialogFormVisibleAdd = false
+
+      // 更新表格
+      this.getTableData()
+    },
+     async showDiaEditUser(user) {
+      this.dialogFormVisibleEdit = true;
+      const res = await this.$http.get(`users/${user.id}`);
+      // console.log(res);
+      this.formdata = res.data.data;
+      // this.formdata = user;
+    },
+
+
+    // 添加用户 - 显示对话框
+    showDiaAddUser () {
+      this.formdata = {}
+      this.dialogFormVisibleAdd = true
+    },
+    // 清空时获取所有用户
+    getAllUsers () {
+      this.getTableData()
+    },
+    // 搜索用户
+    searchUser () {
+      this.pagenum = 1
+      this.getTableData()
+    },
+
+    // 清空时获取所有用户
+    getAllUsers () {
+      this.getTableData()
+    },
     async getTableData () {
       //  设置请求头
       const AUTH_TOKEN = localStorage.getItem('token')
@@ -124,39 +259,19 @@ export default {
         console.log(this.list)
       }
     },
-    // 添加用户
-    showDiaAddUser () {
-      this.dialogFormVisibleAdd = true
-    },
-    // 清空时获取所有用户
-    getAllUsers () {
-      // 此时 query查询参数已经是''
 
-      this.getTableData()
-    },
-    // 搜索用户
-    searchUser () {
-      this.pagenum = 1
-      this.getTableData()
-    },
     handleSizeChange (val) {
       console.log(`每页 ${val} 条`)
       this.pagenum = 1
       this.pagesize = val
       this.getTableData()
     },
-    // 当前1页 -> 点击2页 -> 获取第二页数据
     handleCurrentChange (val) {
       console.log(`当前页: ${val}`)
-      // 根据新页码发送请求
       this.pagenum = val
       this.getTableData()
     },
     async getTableData () {
-      // query	查询参数	可以为空
-      // pagenum	当前页码	不能为空
-      // pagesize	每页显示条数	不能为空
-      // 设置发送请求时的请求头-> axios库 ->找axios中有没有可以设置headers头部的API->看axios文档
       const AUTH_TOKEN = localStorage.getItem('token')
       // console.log(AUTH_TOKEN);
       this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN
@@ -166,10 +281,7 @@ export default {
         }`
       )
       console.log(res)
-      const {
-        data,
-        meta: { status, msg }
-      } = res.data
+      const { data, meta: { status, msg } } = res.data
       if (status === 200) {
         this.total = data.total
         this.list = data.users
