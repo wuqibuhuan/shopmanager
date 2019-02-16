@@ -54,14 +54,21 @@
           </template>
       </el-table-column>
        <el-table-column
-        prop="name"
         label="用户状态"
-         width="180">
+         width="140">
+         <template slot-scope="scope">
+          <!-- 内容 -->
+          <el-switch v-model="scope.row.mg_state" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+        </template>
       </el-table-column>
       <el-table-column
-        prop="name"
         label="操作"
-         width="220">
+         width="200">
+         <template slot-scope="scope">
+           <el-button type="primary" icon="el-icon-edit" circle size="mini" plain></el-button>
+          <el-button type="danger" icon="el-icon-delete" circle size="mini" plain></el-button>
+          <el-button type="success" icon="el-icon-check" circle size="mini" plain></el-button>
+        </template>
       </el-table-column>
     </el-table>
     <!-- 分页 -->
@@ -72,38 +79,37 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
-      query: '',
+      query: "",
       pagenum: 1,
       pagesize: 10,
       list: [],
-       // 表单数据
+      // 表单数据
       formdata: {
         username: "",
         password: "",
         email: "",
         mobile: ""
       }
-
-    }
+    };
   },
-  created () {
-    this.getTableData()
+  created() {
+    this.getTableData();
   },
   methods: {
-   async getTableData () {
-    //  设置请求头
+    async getTableData() {
+      //  设置请求头
       const AUTH_TOKEN = localStorage.getItem("token");
       this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
 
-
-      const res= await this.$http.get(`users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${this.pagesize}=${this.pagesize}`);
+      const res = await this.$http.get(
+        `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${
+          this.pagesize
+        }=${this.pagesize}`
+      );
       // console.log(res);
-       const {
-        data,
-        meta: { status, msg }
-      } = res.data;
+      const { data, meta: { status, msg } } = res.data;
       if (status === 200) {
         // this.total = data.total;
         this.list = data.users;
@@ -111,7 +117,7 @@ export default {
       }
     },
     // 添加用户
-     showDiaAddUser() {
+    showDiaAddUser() {
       this.dialogFormVisibleAdd = true;
     },
     // 清空时获取所有用户
@@ -121,12 +127,12 @@ export default {
       this.getTableData();
     },
     // 搜索用户
-     searchUser() {
+    searchUser() {
       this.pagenum = 1;
       this.getTableData();
-    },
+    }
   }
-}
+};
 </script>
 
 <style>
