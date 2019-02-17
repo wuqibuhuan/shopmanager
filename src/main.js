@@ -6,6 +6,7 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import router from './router'
 import '@/assets/css/base.css'
+import BreadCrumb from './components/Breadcrumb.vue'
 import axios from 'axios'
 import moment from 'moment'
 axios.defaults.baseURL = 'http://localhost:8888/api/private/v1/'
@@ -17,6 +18,8 @@ Vue.use(ElementUI)
 Vue.filter('fmtdate', (v) => {
   return moment(v).format('YYYY-MM-DD')
 })
+// 全局定义组件
+Vue.component(BreadCrumb.name, BreadCrumb)
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
