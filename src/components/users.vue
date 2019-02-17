@@ -58,7 +58,7 @@
          width="140">
          <template slot-scope="scope">
           <!-- 内容 -->
-          <el-switch v-model="scope.row.mg_state" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+          <el-switch   @change="changeState(scope.row)" v-model="scope.row.mg_state" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
         </template>
       </el-table-column>
       <el-table-column
@@ -67,7 +67,7 @@
          <template slot-scope="scope">
            <el-button type="primary"   @click="showDiaEditUser(scope.row)" icon="el-icon-edit" circle size="mini" plain></el-button>
           <el-button type="danger"    @click="showMsgBox(scope.row)"  icon="el-icon-delete" circle size="mini" plain></el-button>
-          <el-button type="success" icon="el-icon-check" circle size="mini" plain></el-button>
+          <el-button type="success"  @click="showDiaSetRole(scope.row)" icon="el-icon-check" circle size="mini" plain></el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -123,44 +123,73 @@
         <el-button type="primary" @click="editUser()">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 对话框 - 角色 -->
+    <el-dialog title="分配角色" :visible.sync="dialogFormVisibleRole">
+      <el-form :model="formdata" label-position="left" label-width="80px">
+        <el-form-item label="用户名">{{currUsername}}</el-form-item>
+        <el-form-item label="角色">
+          {{selectVal}}
+          <el-select v-model="selectVal" placeholder="请选择角色名称">
+            <el-option label="请选择" :value="-1"></el-option>
+            <!-- 其余5个option是动态生成的 v-for-->
+            <!-- 角色[30,31,34,39,40] -->
+            <el-option
+              :label="item.roleName"
+              :value="item.id"
+              v-for="(item,i) in roles"
+              :key="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisibleRole = false">取 消</el-button>
+        <el-button type="primary" @click="setRole()">确 定</el-button>
+      </div>
+    </el-dialog>
 </el-card>
 </template>
 
 <script>
 export default {
-  data () {
+  data() {
     return {
-      query: '',
+      query: "",
       pagenum: 1,
       pagesize: 2,
       total: -1,
       list: [],
       dialogFormVisibleAdd: false,
       dialogFormVisibleEdit: false,
+      dialogFormVisibleRole: false,
       // 表单数据
       formdata: {
-        username: '',
-        password: '',
-        email: '',
-        mobile: ''
-      }
-    }
+        username: "",
+        password: "",
+        email: "",
+        mobile: ""
+      },
+       selectVal: -1,
+
+      // 保存角色的数据
+      roles: [],
+      currUsername: "",
+      // 要的是用户的id<-要用户<-
+      currUserId: -1
+    };
   },
-  created () {
-    this.getTableData()
+  created() {
+    this.getTableData();
   },
   methods: {
-  //  编辑 发送请求
+    //  编辑 发送请求
     async editUser() {
-     
       const res = await this.$http.put(
         `users/${this.formdata.id}`,
         this.formdata
       );
       // console.log(res);
-      const {
-        meta: { msg, status }
-      } = res.data;
+      const { meta: { msg, status } } = res.data;
       if (status === 200) {
         // 关闭对话框
         this.dialogFormVisibleEdit = false;
@@ -176,44 +205,93 @@ export default {
       this.formdata = res.data.data;
       // this.formdata = user;
     },
+
+    // 修改角色
+     async setRole() {
+      // 发送请求
+      const res = await this.$http.put(`users/${this.currUserId}/role`, {
+        // rid角色id
+        rid: this.selectVal
+      });
+      // console.log(res);
+      const {
+        meta: { msg, status }
+      } = res.data;
+      if (status === 200) {
+        // 关闭对话框
+        this.dialogFormVisibleRole = false;
+        this.$message.success(msg);
+      }
+    },
+    async showDiaSetRole(user) {
+      // console.log(user);
+
+      // this.formdata = user;
+      this.currUserId = user.id;
+
+      this.currUsername = user.username;
+      this.dialogFormVisibleRole = true;
+      // 获取所有角色名称(5个)
+      const res = await this.$http.get(`roles`);
+      // console.log(res);
+      const { meta: { msg, status }, data } = res.data;
+      if (status === 200) {
+        this.roles = data;
+        console.log(this.roles);
+      }
+
+      // 获取当前用户的角色id
+      const res2 = await this.$http.get(`users/${user.id}`);
+
+      this.selectVal = res2.data.data.rid;
+    },
+
+    // 修改用户状态
+    async changeState(user) {
+      const res = await this.$http.put(
+        `users/${user.id}/state/${user.mg_state}`
+      );
+      const { meta: { status, msg } } = res.data;
+      if (status === 200) {
+        this.$message.success(msg);
+      }
+    },
     // 删除用户
-    showMsgBox (user) {
-      this.$confirm('是否把我删除?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+    showMsgBox(user) {
+      this.$confirm("是否把我删除?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
       })
         .then(async () => {
-          const res = await this.$http.delete(`users/${user.id}`)
-          console.log(res)
-          const {
-            meta: { msg, status }
-          } = res.data
+          const res = await this.$http.delete(`users/${user.id}`);
+          console.log(res);
+          const { meta: { msg, status } } = res.data;
           if (status === 200) {
             // 提示框
-            this.$message.success(msg)
+            this.$message.success(msg);
             // 更新表格
-            this.pagenum = 1
-            this.getTableData()
+            this.pagenum = 1;
+            this.getTableData();
           }
         })
         .catch(() => {
-          this.$message.info('已取消删除')
-        })
+          this.$message.info("已取消删除");
+        });
     },
-  //  这是编辑 发送请求
-    async addUser () {
+    //  这是编辑 发送请求
+    async addUser() {
       // 获取表单数据 发送请求
-      const res = await this.$http.post(`users`, this.formdata)
+      const res = await this.$http.post(`users`, this.formdata);
       // console.log(res);
 
       // 关闭对话框
-      this.dialogFormVisibleAdd = false
+      this.dialogFormVisibleAdd = false;
 
       // 更新表格
-      this.getTableData()
+      this.getTableData();
     },
-     async showDiaEditUser(user) {
+    async showDiaEditUser(user) {
       this.dialogFormVisibleEdit = true;
       const res = await this.$http.get(`users/${user.id}`);
       // console.log(res);
@@ -221,75 +299,74 @@ export default {
       // this.formdata = user;
     },
 
-
     // 添加用户 - 显示对话框
-    showDiaAddUser () {
-      this.formdata = {}
-      this.dialogFormVisibleAdd = true
+    showDiaAddUser() {
+      this.formdata = {};
+      this.dialogFormVisibleAdd = true;
     },
     // 清空时获取所有用户
-    getAllUsers () {
-      this.getTableData()
+    getAllUsers() {
+      this.getTableData();
     },
     // 搜索用户
-    searchUser () {
-      this.pagenum = 1
-      this.getTableData()
+    searchUser() {
+      this.pagenum = 1;
+      this.getTableData();
     },
 
     // 清空时获取所有用户
-    getAllUsers () {
-      this.getTableData()
+    getAllUsers() {
+      this.getTableData();
     },
-    async getTableData () {
+    async getTableData() {
       //  设置请求头
-      const AUTH_TOKEN = localStorage.getItem('token')
-      this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN
+      const AUTH_TOKEN = localStorage.getItem("token");
+      this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
 
       const res = await this.$http.get(
         `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${
           this.pagesize
         }=${this.pagesize}`
-      )
+      );
       // console.log(res);
-      const { data, meta: { status, msg } } = res.data
+      const { data, meta: { status, msg } } = res.data;
       if (status === 200) {
         // this.total = data.total;
-        this.list = data.users
-        console.log(this.list)
+        this.list = data.users;
+        console.log(this.list);
       }
     },
 
-    handleSizeChange (val) {
-      console.log(`每页 ${val} 条`)
-      this.pagenum = 1
-      this.pagesize = val
-      this.getTableData()
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.pagenum = 1;
+      this.pagesize = val;
+      this.getTableData();
     },
-    handleCurrentChange (val) {
-      console.log(`当前页: ${val}`)
-      this.pagenum = val
-      this.getTableData()
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.pagenum = val;
+      this.getTableData();
     },
-    async getTableData () {
-      const AUTH_TOKEN = localStorage.getItem('token')
+    async getTableData() {
+      const AUTH_TOKEN = localStorage.getItem("token");
       // console.log(AUTH_TOKEN);
-      this.$http.defaults.headers.common['Authorization'] = AUTH_TOKEN
+      this.$http.defaults.headers.common["Authorization"] = AUTH_TOKEN;
       const res = await this.$http.get(
         `users?query=${this.query}&pagenum=${this.pagenum}&pagesize=${
           this.pagesize
         }`
-      )
-      console.log(res)
-      const { data, meta: { status, msg } } = res.data
+      );
+      console.log(res);
+      const { data, meta: { status, msg } } = res.data;
       if (status === 200) {
-        this.total = data.total
-        this.list = data.users
+        this.total = data.total;
+        this.list = data.users;
         // console.log(this.list);
       }
     }
   }
-}
+};
 </script>
 
 <style>
