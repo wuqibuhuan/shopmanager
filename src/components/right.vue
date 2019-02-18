@@ -39,9 +39,9 @@ export default {
         meta: {mag, status},
         data
       } = res.data
-      if (status === 200) {
+     
         this.list = data
-      }
+   
     }
   }
 }

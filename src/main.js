@@ -9,12 +9,13 @@ import '@/assets/css/base.css'
 import BreadCrumb from './components/Breadcrumb.vue'
 import axios from 'axios'
 import moment from 'moment'
-axios.defaults.baseURL = 'http://localhost:8888/api/private/v1/'
-Vue.prototype.$http = axios
+import HttpServer from './components/http'
+
 Vue.config.productionTip = false
 // vue插件的使用
 Vue.use(ElementUI)
 // 全局过滤器 - 处理日期
+Vue.use(HttpServer)
 Vue.filter('fmtdate', (v) => {
   return moment(v).format('YYYY-MM-DD')
 })

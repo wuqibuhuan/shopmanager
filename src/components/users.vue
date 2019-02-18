@@ -125,10 +125,10 @@
     </el-dialog>
     <!-- 对话框 - 角色 -->
     <el-dialog title="分配角色" :visible.sync="dialogFormVisibleRole">
-      <el-form :model="formdata" label-position="left" label-width="80px">
-        <el-form-item label="用户名">{{currUsername}}</el-form-item>
+      <el-form v-model="formdata" label-position="left" label-width="80px">
+        <el-form-item label="用户名">{{formdata.username}}</el-form-item>
         <el-form-item label="角色">
-          {{selectVal}}
+
           <el-select v-model="selectVal" placeholder="请选择角色名称">
             <el-option label="请选择" :value="-1"></el-option>
             <!-- 其余5个option是动态生成的 v-for-->
@@ -136,7 +136,7 @@
             <el-option
               :label="item.roleName"
               :value="item.id"
-              v-for="(item,i) in roles"
+              v-for="(item) in roles"
               :key="item.id"
             ></el-option>
           </el-select>
@@ -159,6 +159,10 @@ export default {
       pagesize: 2,
       total: -1,
       list: [],
+      currUsername: '',
+      selectVal:-1,
+      roles: [],
+      currUserId:-1,
       dialogFormVisibleAdd: false,
       dialogFormVisibleEdit: false,
       dialogFormVisibleRole: false,
@@ -201,15 +205,31 @@ export default {
       this.formdata = res.data.data
       // this.formdata = user;
     },
-
+    // 分配角色
+     async setRole() {
+      // 发送请求
+      const res = await this.$http.put(`users/${this.currUserId}/role`, {
+        // rid角色id
+        rid: this.selectVal
+      });
+      // console.log(res);
+      const {
+        meta: { msg, status }
+      } = res.data;
+      if (status === 200) {
+        // 关闭对话框
+        this.dialogFormVisibleRole = false;
+        this.$message.success(msg);
+      }
+    },
     // 修改角色
     async showDiaSetRole (user) {
-      // console.log(user);
+      console.log(user)
 
       // this.formdata = user;
       this.currUserId = user.id
 
-      this.currUsername = user.username
+      this.formdata = user.username
       this.dialogFormVisibleRole = true
       // 获取所有角色名称(5个)
       const res = await this.$http.get(`roles`)
@@ -227,6 +247,7 @@ export default {
       const res2 = await this.$http.get(`users/${user.id}`)
 
       this.selectVal = res2.data.data.rid
+      console.log( this.selectVal)
     },
 
     // 修改用户状态
