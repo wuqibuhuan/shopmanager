@@ -121,7 +121,7 @@ export default {
 <style>
 .container {
     height: 100%;
-    background-color:#E6EFFB;
+    background-color:#F6DC7D;
 }
 .aside {
     /* background-color: gold; */
@@ -129,7 +129,7 @@ export default {
     margin-top: 20px;
 }
 .main {
-    background-color: #E6EFFB;
+    background-color: #E59347;
 }
 .middle {
   text-align: center;

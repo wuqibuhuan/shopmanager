@@ -17,7 +17,7 @@
         >
           <el-button @click="searchUser()" slot="append" icon="el-icon-search"></el-button>
         </el-input>
-        <el-button type="primary" @click="showDiaAddUser()">添加用户</el-button>
+        <el-button type="warning" @click="showDiaAddUser()">添加用户</el-button>
       </el-col>
     </el-row>
 <!-- 表格 -->

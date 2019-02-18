@@ -9,19 +9,19 @@
       <el-table-column
       type='expand'>
          <template slot-scope="scope">
-            <el-row class="level1" v-for="(item1,i) in scope.row.children" :key="item1.id">
+            <el-row class="level1" v-for="(item1) in scope.row.children" :key="item1.id">
             <el-col :span='4'>
-                <el-tag closable type="danger">{{item1.authName}}</el-tag>
+                <el-tag  @close="deleRights(scope.row,item1)" closable type="danger">{{item1.authName}}</el-tag>
                  <i class="el-icon-arrow-right"></i>
             </el-col>
             <el-col :span='20'>
-                <el-row class="level2" v-for="(item2,i) in item1.children" :key="item2.id">
+                <el-row class="level2" v-for="(item2) in item1.children" :key="item2.id">
                     <el-col  :span='4'>
-                         <el-tag closable type="info">{{item2.authName}}</el-tag>
+                         <el-tag @close="deleRights(scope.row,item2)" closable type="Warning">{{item2.authName}}</el-tag>
                           <i class="el-icon-arrow-right"></i>
                     </el-col>
                     <el-col  :span='20'>
-                        <el-tag  closable v-for="(item3,i) in item2.children" :key="item3.id" type="warning">{{item3.authName}}</el-tag>
+                        <el-tag @close="deleRights(scope.row,item3)" closable v-for="(item3) in item2.children" :key="item3.id" type="warning">{{item3.authName}}</el-tag>
                     </el-col>
                 </el-row>
             </el-col>
@@ -75,6 +75,17 @@ export default {
     this.getRoles();
   },
   methods: {
+    async deleRights(role, rights){
+        const res = await this.$http.delete(`roles/${role.id}/rights/${rights.id}`);
+         const {
+        meta: { msg, status },
+        data
+      } = res.data;
+      if (status === 200) {
+        this.$message.success(msg);
+        this.getRoles()
+      };
+     },
     showDiaSetRoles() {},
 
     async getRoles() {
